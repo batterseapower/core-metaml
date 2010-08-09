@@ -4,6 +4,12 @@ import Data.Maybe
 import System.IO
 
 
+-- An (ugly) implementation of the AIM language from:
+--   "An Idealized MetaML: Simpler, and More Expressive"
+--   by Eugenio Moggi, Walid Taha, Zine El-Abidine Benaissa and Tim Sheard
+--   http://www.springerlink.com/content/m6yf7wmx76bj9mmb/
+
+
 instance Monad (Either String) where
     return = Right
     Left s  >>= _    = Left s
@@ -233,6 +239,7 @@ testType e = do
 
 main :: IO ()
 main = do
+    -- Calls to "error" in the program can cause us to lose some output unless we do this
     hSetBuffering stdout NoBuffering
     
     let x = "x" :: Var
@@ -267,11 +274,11 @@ main = do
         cube_def = Compile (flip BoxWith [(exponent, Var exponent)] (Unbox (Var exponent) `App` int 3))
         mk_cube = valRec (cube, cube_ty) cube_def
     testType $ mk_exp $ mk_exponent $ mk_cube (Var cube)
-    -- -- program :: [int]
+    -- program :: [int]
     let program = "program" :: Var
         program_ty = ClosedCodeTy intTy
         program_def = Compile (flip BoxWith [(cube, Var cube)] (Quote (Unbox (Var cube) `App` int 2)))
         mk_program = valRec (program, program_ty) program_def
     testType $ mk_exp $ mk_exponent $ mk_cube $ mk_program (Var program)
-    -- -- it :: Int
+    -- it :: Int
     test $ mk_exp $ mk_exponent $ mk_cube $ mk_program (Unbox (Var program))
